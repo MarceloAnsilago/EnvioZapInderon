@@ -115,7 +115,7 @@ def preprocess_dataframe(df):
     # Adicione '+55' na frente de todos os números de telefone
     df['Telefone'] = '+55' + df['Telefone']
 
-    # df['Telefone'] = df['Telefone'].str[:9] + '-' + df['Telefone'].str[9:]
+    df['Telefone'] = df['Telefone'].apply(lambda telefone: telefone[:5] + telefone[6:] if len(telefone) == 15 else telefone)
     
     # Crie a coluna "Status" com valor zero
     df["Status"] = "Fila de envio"
@@ -275,14 +275,11 @@ def ReponderMensagem():
         acao_bolinha.perform()
         acao_bolinha.click()
         acao_bolinha.perform()
-        print("aguardando a pagina carregar")
+       
         exibir_mensagem_personalizada("Aguardando a pagina carregar")
         time.sleep(3)
-        # # Esperar pelo elemento 'telefone_cliente'
-        # wait = WebDriverWait(driver, 10)
-        # element = wait.until(EC.presence_of_element_located((By.XPATH, TelefoneContato)))
         exibir_mensagem_personalizada("Pagina carregada")
-        print("aguardando a pagina carregar")
+      
         time.sleep(3)
         # PEGA O TELEFONE DO CLIENTE
         
@@ -336,6 +333,7 @@ def ReponderMensagem():
     except: 
         if df[df['Status'] == "Fila de envio"].shape[0] > 0:
             exibir_mensagem_personalizada("Sem novas mensagens, iniciando um novo disparo")
+            contagem_regressiva_inicial_final(10, 15, 'para novo disparo')
             print("Sem novas mensagens, iniciando novo disparo.")
             contato = str(df[df['Status'] == "Fila de envio"].iloc[0]['Telefone']) 
             Nome =  str(df[df['Telefone'] == contato].iloc[0]['Nome']) 
@@ -372,6 +370,7 @@ def disparar(contato, mensagem, criterio):
             # você tem que verificar se o número é inválido
         if len(driver.find_elements(By.XPATH, '//*[@id="app"]/div/span[2]/div/span/div/div/div/div/div/div[1]')) < 1:
             # enviar a mensagem
+            
             driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[2]/button/span').click()
             df.loc[df['Telefone'] == contato, 'Status'] = criterio
             webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
@@ -412,7 +411,7 @@ with st.expander("Iniciar disparos"):
                 if tipo_mensagem == "Mensagem, Sim ou Não":   
                     # with st.spinner('Iniciando um novo Disparo...'):
                     ReponderMensagem()   
-                    contagem_regressiva_inicial_final(10, 15, 'para novo disparo')
+                   
                     print("-------------------------------------------------------------")
                     print("Aguardando 15 segundos pra sair do código")
                     print("-------------------------------------------------------------")
@@ -432,4 +431,4 @@ with st.expander("Iniciar disparos"):
                     df.to_excel(caminho_do_arquivo, index=False) 
                     time.sleep(1)  
                     atualizar_tabela()
-st.header('Disparos efetuados', divider='rainbow')     
+# st.header('Disparos efetuados', divider='rainbow')     
